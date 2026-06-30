@@ -7,10 +7,15 @@ import static org.mockito.Mockito.when;
 
 import com.deploypilot.common.AuditableEntity;
 import com.deploypilot.customer.Customer;
+import com.deploypilot.deployment.DeploymentConfig;
+import com.deploypilot.deployment.DeploymentConfigRepository;
+import com.deploypilot.deployment.DeploymentConfigStatus;
+import com.deploypilot.deployment.DeploymentEnvironment;
 import com.deploypilot.workflow.Workflow;
 import com.deploypilot.workflow.WorkflowService;
 import com.deploypilot.workflow.WorkflowStatus;
 import com.deploypilot.ai.AiServiceClient;
+import com.deploypilot.ai.ClassifyRequest;
 import com.deploypilot.ai.ClassifyResponse;
 import com.deploypilot.ai.ExtractResponse;
 import com.deploypilot.ai.GenerateActionResponse;
@@ -19,6 +24,7 @@ import java.lang.reflect.Field;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -35,6 +41,9 @@ class WorkflowRunServiceTest {
 
     @Mock
     private WorkflowService workflowService;
+
+    @Mock
+    private DeploymentConfigRepository deploymentConfigRepository;
 
     @Mock
     private AiServiceClient aiServiceClient;
@@ -98,6 +107,86 @@ class WorkflowRunServiceTest {
         ));
 
         assertThat(response.status()).isEqualTo(RunStatus.FAILED);
+    }
+
+    @Test
+    void createRespectsApprovalRequiredConfig() {
+        UUID workflowId = UUID.randomUUID();
+        Workflow workflow = workflow(workflowId);
+        UUID customerId = workflow.getCustomer().getId();
+
+        DeploymentConfig config = new DeploymentConfig();
+        config.setCustomerId(customerId);
+        config.setEnvironment(DeploymentEnvironment.PROD);
+        config.setLlmEnabled(true);
+        config.setApprovalRequired(true);
+        config.setConfidenceThreshold(0.5);
+
+        when(workflowService.getEntityById(workflowId)).thenReturn(workflow);
+        when(deploymentConfigRepository.findByCustomerIdAndEnvironmentAndStatus(
+                customerId, DeploymentEnvironment.PROD, DeploymentConfigStatus.ACTIVE))
+                .thenReturn(Optional.of(config));
+        when(workflowRunRepository.save(any(WorkflowRun.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        when(aiServiceClient.classify(any())).thenReturn(new ClassifyResponse("intent", 0.9, "mock"));
+        when(aiServiceClient.extract(any())).thenReturn(new ExtractResponse(Map.of(), "mock"));
+        when(aiServiceClient.generate(any())).thenReturn(new GenerateActionResponse("action", "mock"));
+
+        WorkflowRunResponse response = workflowRunService.create(workflowId, new CreateWorkflowRunRequest("api", "content"));
+
+        assertThat(response.status()).isEqualTo(RunStatus.WAITING_FOR_APPROVAL);
+    }
+
+    @Test
+    void createRespectsConfidenceThresholdConfig() {
+        UUID workflowId = UUID.randomUUID();
+        Workflow workflow = workflow(workflowId);
+        UUID customerId = workflow.getCustomer().getId();
+
+        DeploymentConfig config = new DeploymentConfig();
+        config.setCustomerId(customerId);
+        config.setEnvironment(DeploymentEnvironment.PROD);
+        config.setLlmEnabled(true);
+        config.setApprovalRequired(false);
+        config.setConfidenceThreshold(0.95);
+
+        when(workflowService.getEntityById(workflowId)).thenReturn(workflow);
+        when(deploymentConfigRepository.findByCustomerIdAndEnvironmentAndStatus(
+                customerId, DeploymentEnvironment.PROD, DeploymentConfigStatus.ACTIVE))
+                .thenReturn(Optional.of(config));
+        when(workflowRunRepository.save(any(WorkflowRun.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        // Confidence 0.9 is below threshold 0.95
+        when(aiServiceClient.classify(any())).thenReturn(new ClassifyResponse("intent", 0.9, "mock"));
+        when(aiServiceClient.extract(any())).thenReturn(new ExtractResponse(Map.of(), "mock"));
+        when(aiServiceClient.generate(any())).thenReturn(new GenerateActionResponse("action", "mock"));
+
+        WorkflowRunResponse response = workflowRunService.create(workflowId, new CreateWorkflowRunRequest("api", "content"));
+
+        assertThat(response.status()).isEqualTo(RunStatus.WAITING_FOR_APPROVAL);
+    }
+
+    @Test
+    void createUsesMockWhenLlmDisabled() {
+        UUID workflowId = UUID.randomUUID();
+        Workflow workflow = workflow(workflowId);
+        UUID customerId = workflow.getCustomer().getId();
+
+        DeploymentConfig config = new DeploymentConfig();
+        config.setCustomerId(customerId);
+        config.setEnvironment(DeploymentEnvironment.PROD);
+        config.setLlmEnabled(false);
+
+        when(workflowService.getEntityById(workflowId)).thenReturn(workflow);
+        when(deploymentConfigRepository.findByCustomerIdAndEnvironmentAndStatus(
+                customerId, DeploymentEnvironment.PROD, DeploymentConfigStatus.ACTIVE))
+                .thenReturn(Optional.of(config));
+        when(workflowRunRepository.save(any(WorkflowRun.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        WorkflowRunResponse response = workflowRunService.create(workflowId, new CreateWorkflowRunRequest("api", "content"));
+
+        assertThat(response.status()).isEqualTo(RunStatus.COMPLETED);
+        assertThat(response.detectedIntent()).isEqualTo("MOCK_INTENT");
     }
 
     @Test
