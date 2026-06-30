@@ -4,6 +4,7 @@ public enum RunStatus {
     QUEUED,
     PROCESSING,
     COMPLETED,
+    WAITING_FOR_APPROVAL,
     FAILED,
     CANCELLED
 }

@@ -8,10 +8,15 @@ import com.deploypilot.ai.ExtractResponse;
 import com.deploypilot.ai.GenerateActionRequest;
 import com.deploypilot.ai.GenerateActionResponse;
 import com.deploypilot.common.exception.ResourceNotFoundException;
+import com.deploypilot.deployment.DeploymentConfig;
+import com.deploypilot.deployment.DeploymentConfigRepository;
+import com.deploypilot.deployment.DeploymentConfigStatus;
+import com.deploypilot.deployment.DeploymentEnvironment;
 import com.deploypilot.workflow.Workflow;
 import com.deploypilot.workflow.WorkflowService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import org.slf4j.Logger;
@@ -31,17 +36,20 @@ public class WorkflowRunService {
 
     private final WorkflowRunRepository workflowRunRepository;
     private final WorkflowService workflowService;
+    private final DeploymentConfigRepository deploymentConfigRepository;
     private final AiServiceClient aiServiceClient;
     private final ObjectMapper objectMapper;
 
     public WorkflowRunService(
             WorkflowRunRepository workflowRunRepository,
             WorkflowService workflowService,
+            DeploymentConfigRepository deploymentConfigRepository,
             AiServiceClient aiServiceClient,
             ObjectMapper objectMapper
     ) {
         this.workflowRunRepository = workflowRunRepository;
         this.workflowService = workflowService;
+        this.deploymentConfigRepository = deploymentConfigRepository;
         this.aiServiceClient = aiServiceClient;
         this.objectMapper = objectMapper;
     }
@@ -71,9 +79,27 @@ public class WorkflowRunService {
 
         workflowRun = workflowRunRepository.save(workflowRun);
 
+        DeploymentConfig config = deploymentConfigRepository.findByCustomerIdAndEnvironmentAndStatus(
+                        workflow.getCustomer().getId(), DeploymentEnvironment.PROD, DeploymentConfigStatus.ACTIVE)
+                .orElse(null);
+
         try {
-            processAiWorkflow(workflowRun, workflow.getId());
-            workflowRun.setStatus(RunStatus.COMPLETED);
+            double confidence = processAiWorkflow(workflowRun, workflow.getId(), config);
+            
+            boolean needsApproval = false;
+            if (config != null) {
+                if (config.isApprovalRequired()) {
+                    needsApproval = true;
+                } else if (confidence < config.getConfidenceThreshold()) {
+                    needsApproval = true;
+                }
+            }
+
+            if (needsApproval) {
+                workflowRun.setStatus(RunStatus.WAITING_FOR_APPROVAL);
+            } else {
+                workflowRun.setStatus(RunStatus.COMPLETED);
+            }
         } catch (Exception e) {
             log.error("AI processing failed for workflow run: {}", workflowRun.getId(), e);
             workflowRun.setStatus(RunStatus.FAILED);
@@ -82,7 +108,11 @@ public class WorkflowRunService {
         return toResponse(workflowRunRepository.save(workflowRun));
     }
 
-    private void processAiWorkflow(WorkflowRun workflowRun, UUID workflowId) {
+    private double processAiWorkflow(WorkflowRun workflowRun, UUID workflowId, DeploymentConfig config) {
+        if (config != null && !config.isLlmEnabled()) {
+            return processWithMockAi(workflowRun);
+        }
+
         // 1. Classify
         ClassifyResponse classifyResponse = aiServiceClient.classify(new ClassifyRequest(
                 workflowRun.getInputContent(),
@@ -104,6 +134,16 @@ public class WorkflowRunService {
                 extractResponse.fields()
         ));
         workflowRun.setRecommendedAction(generateResponse.content());
+
+        return classifyResponse.confidence();
+    }
+
+    private double processWithMockAi(WorkflowRun workflowRun) {
+        log.info("LLM disabled for customer, using mock AI processing");
+        workflowRun.setDetectedIntent("MOCK_INTENT");
+        workflowRun.setExtractedFieldsJson(serializeFields(Collections.emptyMap()));
+        workflowRun.setRecommendedAction("Mock recommendation because LLM is disabled.");
+        return 1.0; // High confidence for mock
     }
 
     private String serializeFields(java.util.Map<String, Object> fields) {
