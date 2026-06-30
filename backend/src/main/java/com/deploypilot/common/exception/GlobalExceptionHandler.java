@@ -1,5 +1,6 @@
 package com.deploypilot.common.exception;
 
+import com.deploypilot.ai.AiServiceException;
 import com.deploypilot.common.api.ErrorResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.LinkedHashMap;
@@ -58,6 +59,20 @@ public class GlobalExceptionHandler {
                         "Request validation failed",
                         request.getRequestURI(),
                         details
+                ));
+    }
+
+    @ExceptionHandler(AiServiceException.class)
+    public ResponseEntity<ErrorResponse> handleAiServiceException(
+            AiServiceException ex,
+            HttpServletRequest request
+    ) {
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
+                .body(ErrorResponse.of(
+                        HttpStatus.SERVICE_UNAVAILABLE.value(),
+                        "AI Service Error",
+                        ex.getMessage(),
+                        request.getRequestURI()
                 ));
     }
 }
