@@ -10,7 +10,6 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
-import java.time.Instant;
 
 @Entity
 @Table(name = "workflow_runs")
@@ -24,9 +23,18 @@ public class WorkflowRun extends AuditableEntity {
     @Column(nullable = false)
     private RunStatus status = RunStatus.QUEUED;
 
-    private Instant startedAt;
+    private String inputSource;
 
-    private Instant completedAt;
+    @Column(nullable = false, columnDefinition = "text")
+    private String inputContent;
+
+    private String detectedIntent;
+
+    @Column(columnDefinition = "text")
+    private String extractedFieldsJson;
+
+    @Column(columnDefinition = "text")
+    private String recommendedAction;
 
     public Workflow getWorkflow() {
         return workflow;
@@ -44,19 +52,43 @@ public class WorkflowRun extends AuditableEntity {
         this.status = status;
     }
 
-    public Instant getStartedAt() {
-        return startedAt;
+    public String getInputSource() {
+        return inputSource;
     }
 
-    public void setStartedAt(Instant startedAt) {
-        this.startedAt = startedAt;
+    public void setInputSource(String inputSource) {
+        this.inputSource = inputSource;
     }
 
-    public Instant getCompletedAt() {
-        return completedAt;
+    public String getInputContent() {
+        return inputContent;
     }
 
-    public void setCompletedAt(Instant completedAt) {
-        this.completedAt = completedAt;
+    public void setInputContent(String inputContent) {
+        this.inputContent = inputContent;
+    }
+
+    public String getDetectedIntent() {
+        return detectedIntent;
+    }
+
+    public void setDetectedIntent(String detectedIntent) {
+        this.detectedIntent = detectedIntent;
+    }
+
+    public String getExtractedFieldsJson() {
+        return extractedFieldsJson;
+    }
+
+    public void setExtractedFieldsJson(String extractedFieldsJson) {
+        this.extractedFieldsJson = extractedFieldsJson;
+    }
+
+    public String getRecommendedAction() {
+        return recommendedAction;
+    }
+
+    public void setRecommendedAction(String recommendedAction) {
+        this.recommendedAction = recommendedAction;
     }
 }

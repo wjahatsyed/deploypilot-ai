@@ -23,20 +23,18 @@ public class CustomerController {
     }
 
     @GetMapping
-    public List<Customer> findAll() {
+    public List<CustomerResponse> findAll() {
         return customerService.findAll();
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Customer> findById(@PathVariable UUID id) {
-        return customerService.findById(id)
-                .map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.notFound().build());
+    public CustomerResponse findById(@PathVariable UUID id) {
+        return customerService.findById(id);
     }
 
     @PostMapping
-    public ResponseEntity<Customer> create(@Valid @RequestBody Customer customer) {
-        Customer created = customerService.create(customer);
-        return ResponseEntity.created(URI.create("/api/customers/" + created.getId())).body(created);
+    public ResponseEntity<CustomerResponse> create(@Valid @RequestBody CreateCustomerRequest request) {
+        CustomerResponse created = customerService.create(request);
+        return ResponseEntity.created(URI.create("/api/customers/" + created.id())).body(created);
     }
 }
