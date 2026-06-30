@@ -10,14 +10,21 @@ import com.deploypilot.customer.Customer;
 import com.deploypilot.workflow.Workflow;
 import com.deploypilot.workflow.WorkflowService;
 import com.deploypilot.workflow.WorkflowStatus;
+import com.deploypilot.ai.AiServiceClient;
+import com.deploypilot.ai.ClassifyResponse;
+import com.deploypilot.ai.ExtractResponse;
+import com.deploypilot.ai.GenerateActionResponse;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.lang.reflect.Field;
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
@@ -29,20 +36,32 @@ class WorkflowRunServiceTest {
     @Mock
     private WorkflowService workflowService;
 
+    @Mock
+    private AiServiceClient aiServiceClient;
+
+    @Spy
+    private ObjectMapper objectMapper = new ObjectMapper();
+
     @InjectMocks
     private WorkflowRunService workflowRunService;
 
     @Test
-    void createAttachesWorkflowAndQueuesRun() {
+    void createAttachesWorkflowAndProcessesRun() {
         UUID workflowId = UUID.randomUUID();
         UUID runId = UUID.randomUUID();
         Workflow workflow = workflow(workflowId);
         when(workflowService.getEntityById(workflowId)).thenReturn(workflow);
         when(workflowRunRepository.save(any(WorkflowRun.class))).thenAnswer(invocation -> {
             WorkflowRun run = invocation.getArgument(0);
-            setAuditFields(run, runId);
+            if (run.getId() == null) {
+                setAuditFields(run, runId);
+            }
             return run;
         });
+
+        when(aiServiceClient.classify(any())).thenReturn(new ClassifyResponse("deployment_request", 0.9, "mock"));
+        when(aiServiceClient.extract(any())).thenReturn(new ExtractResponse(Map.of("env", "prod"), "mock"));
+        when(aiServiceClient.generate(any())).thenReturn(new GenerateActionResponse("Deploy now", "mock"));
 
         WorkflowRunResponse response = workflowRunService.create(workflowId, new CreateWorkflowRunRequest(
                 "email",
@@ -51,10 +70,34 @@ class WorkflowRunServiceTest {
 
         assertThat(response.id()).isEqualTo(runId);
         assertThat(response.workflowId()).isEqualTo(workflowId);
-        assertThat(response.inputSource()).isEqualTo("email");
-        assertThat(response.inputContent()).isEqualTo("Please deploy version 1.2.3");
-        assertThat(response.status()).isEqualTo(RunStatus.QUEUED);
+        assertThat(response.status()).isEqualTo(RunStatus.COMPLETED);
+        assertThat(response.detectedIntent()).isEqualTo("deployment_request");
+        assertThat(response.recommendedAction()).isEqualTo("Deploy now");
         verify(workflowService).getEntityById(workflowId);
+    }
+
+    @Test
+    void createMarksRunFailedWhenAiServiceFails() {
+        UUID workflowId = UUID.randomUUID();
+        UUID runId = UUID.randomUUID();
+        Workflow workflow = workflow(workflowId);
+        when(workflowService.getEntityById(workflowId)).thenReturn(workflow);
+        when(workflowRunRepository.save(any(WorkflowRun.class))).thenAnswer(invocation -> {
+            WorkflowRun run = invocation.getArgument(0);
+            if (run.getId() == null) {
+                setAuditFields(run, runId);
+            }
+            return run;
+        });
+
+        when(aiServiceClient.classify(any())).thenThrow(new RuntimeException("AI down"));
+
+        WorkflowRunResponse response = workflowRunService.create(workflowId, new CreateWorkflowRunRequest(
+                "email",
+                "Please deploy version 1.2.3"
+        ));
+
+        assertThat(response.status()).isEqualTo(RunStatus.FAILED);
     }
 
     @Test
@@ -66,7 +109,7 @@ class WorkflowRunServiceTest {
         run.setWorkflow(workflow);
         run.setInputSource("api");
         run.setInputContent("deploy service");
-        run.setStatus(RunStatus.RUNNING);
+        run.setStatus(RunStatus.PROCESSING);
         setAuditFields(run, runId);
         when(workflowService.getEntityById(workflowId)).thenReturn(workflow);
         when(workflowRunRepository.findByWorkflowId(workflowId)).thenReturn(List.of(run));
@@ -75,7 +118,7 @@ class WorkflowRunServiceTest {
 
         assertThat(responses).hasSize(1);
         assertThat(responses.getFirst().id()).isEqualTo(runId);
-        assertThat(responses.getFirst().status()).isEqualTo(RunStatus.RUNNING);
+        assertThat(responses.getFirst().status()).isEqualTo(RunStatus.PROCESSING);
         verify(workflowService).getEntityById(workflowId);
     }
 

@@ -2,8 +2,8 @@ package com.deploypilot.workflowrun;
 
 public enum RunStatus {
     QUEUED,
-    RUNNING,
-    SUCCEEDED,
+    PROCESSING,
+    COMPLETED,
     FAILED,
     CANCELLED
 }
