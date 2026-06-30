@@ -10,9 +10,15 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @Table(name = "workflow_runs")
+@Getter
+@Setter
+@NoArgsConstructor
 public class WorkflowRun extends AuditableEntity {
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
@@ -35,60 +41,4 @@ public class WorkflowRun extends AuditableEntity {
 
     @Column(columnDefinition = "text")
     private String recommendedAction;
-
-    public Workflow getWorkflow() {
-        return workflow;
-    }
-
-    public void setWorkflow(Workflow workflow) {
-        this.workflow = workflow;
-    }
-
-    public RunStatus getStatus() {
-        return status;
-    }
-
-    public void setStatus(RunStatus status) {
-        this.status = status;
-    }
-
-    public String getInputSource() {
-        return inputSource;
-    }
-
-    public void setInputSource(String inputSource) {
-        this.inputSource = inputSource;
-    }
-
-    public String getInputContent() {
-        return inputContent;
-    }
-
-    public void setInputContent(String inputContent) {
-        this.inputContent = inputContent;
-    }
-
-    public String getDetectedIntent() {
-        return detectedIntent;
-    }
-
-    public void setDetectedIntent(String detectedIntent) {
-        this.detectedIntent = detectedIntent;
-    }
-
-    public String getExtractedFieldsJson() {
-        return extractedFieldsJson;
-    }
-
-    public void setExtractedFieldsJson(String extractedFieldsJson) {
-        this.extractedFieldsJson = extractedFieldsJson;
-    }
-
-    public String getRecommendedAction() {
-        return recommendedAction;
-    }
-
-    public void setRecommendedAction(String recommendedAction) {
-        this.recommendedAction = recommendedAction;
-    }
 }

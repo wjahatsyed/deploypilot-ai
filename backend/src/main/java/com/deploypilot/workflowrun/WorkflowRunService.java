@@ -19,6 +19,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+/**
+ * Service for managing {@link WorkflowRun} entities.
+ * Orchestrates AI processing for each workflow run.
+ */
 @Service
 @Transactional(readOnly = true)
 public class WorkflowRunService {
@@ -68,32 +72,7 @@ public class WorkflowRunService {
         workflowRun = workflowRunRepository.save(workflowRun);
 
         try {
-            // 1. Classify
-            ClassifyResponse classifyResponse = aiServiceClient.classify(new ClassifyRequest(
-                    workflowRun.getInputContent(),
-                    workflowRun.getInputSource(),
-                    workflow.getId().toString()
-            ));
-            workflowRun.setDetectedIntent(classifyResponse.detected_intent());
-
-            // 2. Extract
-            ExtractResponse extractResponse = aiServiceClient.extract(new ExtractRequest(
-                    workflowRun.getInputContent(),
-                    workflowRun.getDetectedIntent()
-            ));
-            try {
-                workflowRun.setExtractedFieldsJson(objectMapper.writeValueAsString(extractResponse.fields()));
-            } catch (JsonProcessingException e) {
-                log.error("Failed to serialize extracted fields", e);
-            }
-
-            // 3. Generate Action
-            GenerateActionResponse generateResponse = aiServiceClient.generate(new GenerateActionRequest(
-                    "Recommend the next action for this " + workflowRun.getDetectedIntent(),
-                    extractResponse.fields()
-            ));
-            workflowRun.setRecommendedAction(generateResponse.content());
-
+            processAiWorkflow(workflowRun, workflow.getId());
             workflowRun.setStatus(RunStatus.COMPLETED);
         } catch (Exception e) {
             log.error("AI processing failed for workflow run: {}", workflowRun.getId(), e);
@@ -101,6 +80,39 @@ public class WorkflowRunService {
         }
 
         return toResponse(workflowRunRepository.save(workflowRun));
+    }
+
+    private void processAiWorkflow(WorkflowRun workflowRun, UUID workflowId) {
+        // 1. Classify
+        ClassifyResponse classifyResponse = aiServiceClient.classify(new ClassifyRequest(
+                workflowRun.getInputContent(),
+                workflowRun.getInputSource(),
+                workflowId.toString()
+        ));
+        workflowRun.setDetectedIntent(classifyResponse.detectedIntent());
+
+        // 2. Extract
+        ExtractResponse extractResponse = aiServiceClient.extract(new ExtractRequest(
+                workflowRun.getInputContent(),
+                workflowRun.getDetectedIntent()
+        ));
+        workflowRun.setExtractedFieldsJson(serializeFields(extractResponse.fields()));
+
+        // 3. Generate Action
+        GenerateActionResponse generateResponse = aiServiceClient.generate(new GenerateActionRequest(
+                "Recommend the next action for this " + workflowRun.getDetectedIntent(),
+                extractResponse.fields()
+        ));
+        workflowRun.setRecommendedAction(generateResponse.content());
+    }
+
+    private String serializeFields(java.util.Map<String, Object> fields) {
+        try {
+            return objectMapper.writeValueAsString(fields);
+        } catch (JsonProcessingException e) {
+            log.warn("Failed to serialize extracted fields, saving as empty JSON", e);
+            return "{}";
+        }
     }
 
     static WorkflowRunResponse toResponse(WorkflowRun workflowRun) {

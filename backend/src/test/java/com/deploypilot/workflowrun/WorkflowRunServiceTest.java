@@ -135,7 +135,7 @@ class WorkflowRunServiceTest {
         return workflow;
     }
 
-    private static void setAuditFields(AuditableEntity entity, UUID id) {
+    private static void setAuditFields(Object entity, UUID id) {
         try {
             setField(entity, "id", id);
             setField(entity, "createdAt", Instant.now());
@@ -145,7 +145,7 @@ class WorkflowRunServiceTest {
         }
     }
 
-    private static void setField(AuditableEntity entity, String fieldName, Object value)
+    private static void setField(Object entity, String fieldName, Object value)
             throws ReflectiveOperationException {
         Field field = AuditableEntity.class.getDeclaredField(fieldName);
         field.setAccessible(true);
