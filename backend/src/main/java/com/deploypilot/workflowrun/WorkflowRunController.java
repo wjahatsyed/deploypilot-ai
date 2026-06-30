@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/workflow-runs")
+@RequestMapping("/api")
 public class WorkflowRunController {
 
     private final WorkflowRunService workflowRunService;
@@ -22,21 +22,22 @@ public class WorkflowRunController {
         this.workflowRunService = workflowRunService;
     }
 
-    @GetMapping
-    public List<WorkflowRun> findAll() {
-        return workflowRunService.findAll();
+    @PostMapping("/workflows/{workflowId}/runs")
+    public ResponseEntity<WorkflowRunResponse> create(
+            @PathVariable UUID workflowId,
+            @Valid @RequestBody CreateWorkflowRunRequest request
+    ) {
+        WorkflowRunResponse created = workflowRunService.create(workflowId, request);
+        return ResponseEntity.created(URI.create("/api/runs/" + created.id())).body(created);
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<WorkflowRun> findById(@PathVariable UUID id) {
-        return workflowRunService.findById(id)
-                .map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.notFound().build());
+    @GetMapping("/workflows/{workflowId}/runs")
+    public List<WorkflowRunResponse> findByWorkflowId(@PathVariable UUID workflowId) {
+        return workflowRunService.findByWorkflowId(workflowId);
     }
 
-    @PostMapping
-    public ResponseEntity<WorkflowRun> create(@Valid @RequestBody WorkflowRun workflowRun) {
-        WorkflowRun created = workflowRunService.create(workflowRun);
-        return ResponseEntity.created(URI.create("/api/workflow-runs/" + created.getId())).body(created);
+    @GetMapping("/runs/{runId}")
+    public WorkflowRunResponse findById(@PathVariable UUID runId) {
+        return workflowRunService.findById(runId);
     }
 }

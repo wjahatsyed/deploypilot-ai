@@ -4,21 +4,20 @@ import com.deploypilot.common.AuditableEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
 
 @Entity
 @Table(name = "customers")
 public class Customer extends AuditableEntity {
 
-    @NotBlank
     @Column(nullable = false)
     private String name;
 
-    @Email
-    @NotBlank
-    @Column(nullable = false, unique = true)
-    private String email;
+    private String industry;
+
+    private String region;
+
+    @Column(unique = true)
+    private String contactEmail;
 
     public String getName() {
         return name;
@@ -28,11 +27,27 @@ public class Customer extends AuditableEntity {
         this.name = name;
     }
 
-    public String getEmail() {
-        return email;
+    public String getIndustry() {
+        return industry;
     }
 
-    public void setEmail(String email) {
-        this.email = email;
+    public void setIndustry(String industry) {
+        this.industry = industry;
+    }
+
+    public String getRegion() {
+        return region;
+    }
+
+    public void setRegion(String region) {
+        this.region = region;
+    }
+
+    public String getContactEmail() {
+        return contactEmail;
+    }
+
+    public void setContactEmail(String contactEmail) {
+        this.contactEmail = contactEmail;
     }
 }
