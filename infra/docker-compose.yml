@@ -1,0 +1,20 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: deploypilot-postgres
+    environment:
+      POSTGRES_DB: deploypilot
+      POSTGRES_USER: deploypilot
+      POSTGRES_PASSWORD: deploypilot
+    ports:
+      - "5432:5432"
+    volumes:
+      - deploypilot-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U deploypilot -d deploypilot"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  deploypilot-postgres-data:
