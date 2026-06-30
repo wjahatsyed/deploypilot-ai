@@ -6,22 +6,19 @@
 - Maven (optional, Maven wrapper included)
 
 ## Getting Started
-### Database
-Start PostgreSQL from the repository root:
+
+### Using Docker Compose (Recommended)
 ```bash
-docker compose -f infra/docker-compose.yml up -d postgres
+docker compose up --build
 ```
+See [Local Setup Guide](docs/runbooks/local-setup.md) for health URLs and sample API commands.
 
-### Build and Run
-1. Build the entire project from the root:
-   ```bash
-   .\mvnw.cmd clean install
-   ```
-
-2. Run the backend application:
-   ```bash
-   .\mvnw.cmd spring-boot:run -pl backend
-   ```
+### Manual Setup
+#### Database & Infrastructure
+Start PostgreSQL and Redis from the repository root:
+```bash
+docker compose up -d postgres redis
+```
 
 ## AI Service Integration
 The backend integrates with the AI service to process workflow runs.
@@ -35,7 +32,12 @@ The backend integrates with the AI service to process workflow runs.
 6. Backend updates `WorkflowRun` with results and sets status to `COMPLETED`.
 
 ### Local Run Instructions
-1. **Start AI Service**:
+1. **Start Infrastructure**:
+   ```bash
+   docker compose up -d postgres redis
+   ```
+
+2. **Start AI Service**:
    ```bash
    cd ai-service
    pip install -r requirements.txt
