@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/approvals")
+@RequestMapping("/api")
 public class ApprovalController {
 
     private final ApprovalService approvalService;
@@ -22,21 +22,28 @@ public class ApprovalController {
         this.approvalService = approvalService;
     }
 
-    @GetMapping
-    public List<HumanApproval> findAll() {
-        return approvalService.findAll();
+    @GetMapping("/approvals/pending")
+    public List<HumanApprovalResponse> findPending() {
+        return approvalService.findPending().stream()
+                .map(HumanApprovalResponse::from)
+                .toList();
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<HumanApproval> findById(@PathVariable UUID id) {
-        return approvalService.findById(id)
+    @GetMapping("/runs/{runId}/approval")
+    public ResponseEntity<HumanApprovalResponse> findByRunId(@PathVariable UUID runId) {
+        return approvalService.findByWorkflowRunId(runId)
+                .map(HumanApprovalResponse::from)
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    @PostMapping
-    public ResponseEntity<HumanApproval> create(@Valid @RequestBody HumanApproval humanApproval) {
-        HumanApproval created = approvalService.create(humanApproval);
-        return ResponseEntity.created(URI.create("/api/approvals/" + created.getId())).body(created);
+    @PostMapping("/runs/{runId}/approve")
+    public HumanApprovalResponse approve(@PathVariable UUID runId, @Valid @RequestBody ApprovalRequest request) {
+        return HumanApprovalResponse.from(approvalService.approve(runId, request.email(), request.comment()));
+    }
+
+    @PostMapping("/runs/{runId}/reject")
+    public HumanApprovalResponse reject(@PathVariable UUID runId, @Valid @RequestBody ApprovalRequest request) {
+        return HumanApprovalResponse.from(approvalService.reject(runId, request.email(), request.comment()));
     }
 }

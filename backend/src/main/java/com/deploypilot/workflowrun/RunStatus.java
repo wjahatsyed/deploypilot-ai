@@ -6,5 +6,6 @@ public enum RunStatus {
     COMPLETED,
     WAITING_FOR_APPROVAL,
     FAILED,
+    REJECTED,
     CANCELLED
 }
