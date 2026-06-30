@@ -10,10 +10,15 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
-import java.math.BigDecimal;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @Table(name = "evaluation_results")
+@Getter
+@Setter
+@NoArgsConstructor
 public class EvaluationResult extends AuditableEntity {
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
@@ -24,41 +29,22 @@ public class EvaluationResult extends AuditableEntity {
     @Column(nullable = false)
     private EvaluationStatus status = EvaluationStatus.PENDING;
 
-    @Column(precision = 5, scale = 2)
-    private BigDecimal score;
+    private Double score;
+
+    @Column(nullable = false)
+    private boolean passed;
+
+    private boolean intentMatched;
+
+    private Double fieldAccuracy;
+
+    private Double actionQualityScore;
+
+    @Column(columnDefinition = "text")
+    private String failureReasonsJson;
+
+    private Long latencyMs;
 
     @Column(columnDefinition = "text")
     private String summary;
-
-    public WorkflowRun getWorkflowRun() {
-        return workflowRun;
-    }
-
-    public void setWorkflowRun(WorkflowRun workflowRun) {
-        this.workflowRun = workflowRun;
-    }
-
-    public EvaluationStatus getStatus() {
-        return status;
-    }
-
-    public void setStatus(EvaluationStatus status) {
-        this.status = status;
-    }
-
-    public BigDecimal getScore() {
-        return score;
-    }
-
-    public void setScore(BigDecimal score) {
-        this.score = score;
-    }
-
-    public String getSummary() {
-        return summary;
-    }
-
-    public void setSummary(String summary) {
-        this.summary = summary;
-    }
 }

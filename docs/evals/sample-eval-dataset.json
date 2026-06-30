@@ -1,0 +1,25 @@
+{
+  "name": "E-commerce Deployment Dataset",
+  "description": "Dataset for evaluating AI deployment assistant in e-commerce context",
+  "customerId": "00000000-0000-0000-0000-000000000001",
+  "cases": [
+    {
+      "inputContent": "Deploy the frontend service version 1.2.3 to production immediately.",
+      "expectedIntent": "DEPLOY_SERVICE",
+      "expectedFieldsJson": "{\"service\": \"frontend\", \"version\": \"1.2.3\", \"environment\": \"production\"}",
+      "expectedActionKeywords": "deploy, frontend, 1.2.3, production"
+    },
+    {
+      "inputContent": "Rollback the payment gateway in staging. Something is wrong.",
+      "expectedIntent": "ROLLBACK_SERVICE",
+      "expectedFieldsJson": "{\"service\": \"payment-gateway\", \"environment\": \"staging\"}",
+      "expectedActionKeywords": "rollback, payment-gateway, staging"
+    },
+    {
+      "inputContent": "Check status of order-service in dev environment.",
+      "expectedIntent": "CHECK_STATUS",
+      "expectedFieldsJson": "{\"service\": \"order-service\", \"environment\": \"dev\"}",
+      "expectedActionKeywords": "status, order-service, dev"
+    }
+  ]
+}
