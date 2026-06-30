@@ -1,0 +1,18 @@
+Evaluate the actual AI output against the expected output.
+
+Actual Output:
+{{actual_output}}
+
+Expected Output:
+{{expected_output}}
+
+Provide the response in JSON format:
+{
+  "score": 0.0-1.0,
+  "passed": true|false,
+  "failureReasons": ["reason 1"],
+  "metricBreakdown": {
+    "accuracy": 0.0-1.0,
+    "relevance": 0.0-1.0
+  }
+}

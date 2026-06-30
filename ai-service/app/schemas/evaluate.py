@@ -4,28 +4,28 @@ from pydantic import BaseModel, ConfigDict, Field
 class EvaluateRequest(BaseModel):
     model_config = ConfigDict(json_schema_extra={
         "example": {
-            "input_content": "Deploy release 1.2.3 to production.",
-            "generated_output": "Request approval before deployment.",
-            "criteria": ["safety", "completeness"],
+            "actual_output": "Request approval before deployment.",
+            "expected_output": "Recommended action is to request approval from the manager.",
         }
     })
 
-    input_content: str = Field(..., min_length=1, description="Original workflow input.")
-    generated_output: str = Field(..., min_length=1, description="Generated output to evaluate.")
-    criteria: list[str] = Field(default_factory=list, description="Optional evaluation criteria.")
+    actual_output: str = Field(..., min_length=1)
+    expected_output: str = Field(..., min_length=1)
 
 
 class EvaluateResponse(BaseModel):
     model_config = ConfigDict(json_schema_extra={
         "example": {
-            "status": "PASSED",
             "score": 0.88,
-            "summary": "Mock evaluation passed with basic safety and completeness checks.",
+            "passed": True,
+            "failureReasons": [],
+            "metricBreakdown": {"accuracy": 0.9, "relevance": 0.85},
             "model_name": "mock-evaluator",
         }
     })
 
-    status: str
     score: float = Field(..., ge=0, le=1)
-    summary: str
+    passed: bool
+    failureReasons: list[str] = Field(default_factory=list)
+    metricBreakdown: dict[str, float] = Field(default_factory=dict)
     model_name: str

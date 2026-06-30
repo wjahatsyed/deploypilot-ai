@@ -1,0 +1,12 @@
+Generate a recommended action for the following context:
+
+Context:
+{{input_content}}
+
+Provide the response in JSON format:
+{
+  "recommendedAction": "description of the action",
+  "nextSteps": ["step 1", "step 2"],
+  "riskLevel": "low|medium|high",
+  "requiresHumanApproval": true|false
+}

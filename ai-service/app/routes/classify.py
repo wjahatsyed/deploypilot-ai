@@ -11,7 +11,7 @@ classifier_service = ClassifierService()
     "/classify",
     response_model=ClassifyResponse,
     summary="Classify workflow input",
-    description="Returns a mock intent classification for workflow input. OpenAI integration is not enabled yet.",
+    description="Returns an intent classification for workflow input. Supports OpenAI integration.",
 )
 def classify(request: ClassifyRequest) -> ClassifyResponse:
     return classifier_service.classify(request)

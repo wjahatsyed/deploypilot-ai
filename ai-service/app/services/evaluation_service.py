@@ -1,14 +1,37 @@
+import os
 from app.config import settings
 from app.schemas.evaluate import EvaluateRequest, EvaluateResponse
+from app.services.llm_client import get_llm_client
 
 
 class EvaluationService:
+    def __init__(self):
+        self.llm_client = get_llm_client()
+        prompt_path = os.path.join(os.path.dirname(__file__), "..", "prompts", "evaluate_prompt.txt")
+        with open(prompt_path, "r") as f:
+            self.prompt_template = f.read()
+
     def evaluate(self, request: EvaluateRequest) -> EvaluateResponse:
-        has_output = bool(request.generated_output.strip())
+        variables = {
+            "actual_output": request.actual_output,
+            "expected_output": request.expected_output
+        }
+        result = self.llm_client.call(self.prompt_template, variables)
+
+        # Safety fallback
+        if "error" in result:
+            return EvaluateResponse(
+                score=0.0,
+                passed=False,
+                failureReasons=[f"Error during evaluation: {result.get('error')}"],
+                metricBreakdown={},
+                model_name=settings.model_name if settings.llm_enabled else "mock-evaluator"
+            )
 
         return EvaluateResponse(
-            status="PASSED" if has_output else "FAILED",
-            score=0.88 if has_output else 0.0,
-            summary="Mock evaluation completed. AI integration is not enabled yet.",
-            model_name=f"mock-evaluator:{settings.model_name}",
+            score=result.get("score", 0.0),
+            passed=result.get("passed", False),
+            failureReasons=result.get("failureReasons", []),
+            metricBreakdown=result.get("metricBreakdown", {}),
+            model_name=settings.model_name if settings.llm_enabled else "mock-evaluator"
         )
