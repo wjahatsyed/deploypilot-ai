@@ -7,6 +7,9 @@ import com.deploypilot.ai.ExtractRequest;
 import com.deploypilot.ai.ExtractResponse;
 import com.deploypilot.ai.GenerateActionRequest;
 import com.deploypilot.ai.GenerateActionResponse;
+import com.deploypilot.approval.ApprovalStatus;
+import com.deploypilot.approval.HumanApproval;
+import com.deploypilot.approval.HumanApprovalRepository;
 import com.deploypilot.common.exception.ResourceNotFoundException;
 import com.deploypilot.deployment.DeploymentConfig;
 import com.deploypilot.deployment.DeploymentConfigRepository;
@@ -37,6 +40,7 @@ public class WorkflowRunService {
     private final WorkflowRunRepository workflowRunRepository;
     private final WorkflowService workflowService;
     private final DeploymentConfigRepository deploymentConfigRepository;
+    private final HumanApprovalRepository humanApprovalRepository;
     private final AiServiceClient aiServiceClient;
     private final ObjectMapper objectMapper;
 
@@ -44,12 +48,14 @@ public class WorkflowRunService {
             WorkflowRunRepository workflowRunRepository,
             WorkflowService workflowService,
             DeploymentConfigRepository deploymentConfigRepository,
+            HumanApprovalRepository humanApprovalRepository,
             AiServiceClient aiServiceClient,
             ObjectMapper objectMapper
     ) {
         this.workflowRunRepository = workflowRunRepository;
         this.workflowService = workflowService;
         this.deploymentConfigRepository = deploymentConfigRepository;
+        this.humanApprovalRepository = humanApprovalRepository;
         this.aiServiceClient = aiServiceClient;
         this.objectMapper = objectMapper;
     }
@@ -97,6 +103,12 @@ public class WorkflowRunService {
 
             if (needsApproval) {
                 workflowRun.setStatus(RunStatus.WAITING_FOR_APPROVAL);
+                
+                HumanApproval approval = new HumanApproval();
+                approval.setWorkflowRun(workflowRun);
+                approval.setStatus(ApprovalStatus.PENDING);
+                approval.setRequestedBy("system");
+                humanApprovalRepository.save(approval);
             } else {
                 workflowRun.setStatus(RunStatus.COMPLETED);
             }

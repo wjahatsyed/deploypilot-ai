@@ -6,6 +6,9 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.deploypilot.common.AuditableEntity;
+import com.deploypilot.approval.ApprovalStatus;
+import com.deploypilot.approval.HumanApproval;
+import com.deploypilot.approval.HumanApprovalRepository;
 import com.deploypilot.customer.Customer;
 import com.deploypilot.deployment.DeploymentConfig;
 import com.deploypilot.deployment.DeploymentConfigRepository;
@@ -44,6 +47,9 @@ class WorkflowRunServiceTest {
 
     @Mock
     private DeploymentConfigRepository deploymentConfigRepository;
+
+    @Mock
+    private HumanApprovalRepository humanApprovalRepository;
 
     @Mock
     private AiServiceClient aiServiceClient;
@@ -135,6 +141,7 @@ class WorkflowRunServiceTest {
         WorkflowRunResponse response = workflowRunService.create(workflowId, new CreateWorkflowRunRequest("api", "content"));
 
         assertThat(response.status()).isEqualTo(RunStatus.WAITING_FOR_APPROVAL);
+        verify(humanApprovalRepository).save(any(HumanApproval.class));
     }
 
     @Test
@@ -164,6 +171,7 @@ class WorkflowRunServiceTest {
         WorkflowRunResponse response = workflowRunService.create(workflowId, new CreateWorkflowRunRequest("api", "content"));
 
         assertThat(response.status()).isEqualTo(RunStatus.WAITING_FOR_APPROVAL);
+        verify(humanApprovalRepository).save(any(HumanApproval.class));
     }
 
     @Test

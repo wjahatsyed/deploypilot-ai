@@ -7,10 +7,10 @@ public record HumanApprovalResponse(
         UUID id,
         UUID workflowRunId,
         ApprovalStatus status,
+        String reviewerEmail,
+        String reviewerComment,
         String requestedBy,
-        String reviewedBy,
         Instant reviewedAt,
-        String notes,
         Instant createdAt,
         Instant updatedAt
 ) {
@@ -20,10 +20,10 @@ public record HumanApprovalResponse(
                 humanApproval.getId(),
                 humanApproval.getWorkflowRun().getId(),
                 humanApproval.getStatus(),
+                humanApproval.getReviewerEmail(),
+                humanApproval.getReviewerComment(),
                 humanApproval.getRequestedBy(),
-                humanApproval.getReviewedBy(),
                 humanApproval.getReviewedAt(),
-                humanApproval.getNotes(),
                 humanApproval.getCreatedAt(),
                 humanApproval.getUpdatedAt()
         );

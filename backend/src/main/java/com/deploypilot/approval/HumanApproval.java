@@ -24,15 +24,14 @@ public class HumanApproval extends AuditableEntity {
     @Column(nullable = false)
     private ApprovalStatus status = ApprovalStatus.PENDING;
 
-    @Column(nullable = false)
-    private String requestedBy;
-
-    private String reviewedBy;
-
-    private Instant reviewedAt;
+    @Column
+    private String reviewerEmail;
 
     @Column(columnDefinition = "text")
-    private String notes;
+    private String reviewerComment;
+
+    @Column
+    private String requestedBy;
 
     public WorkflowRun getWorkflowRun() {
         return workflowRun;
@@ -50,6 +49,22 @@ public class HumanApproval extends AuditableEntity {
         this.status = status;
     }
 
+    public String getReviewerEmail() {
+        return reviewerEmail;
+    }
+
+    public void setReviewerEmail(String reviewerEmail) {
+        this.reviewerEmail = reviewerEmail;
+    }
+
+    public String getReviewerComment() {
+        return reviewerComment;
+    }
+
+    public void setReviewerComment(String reviewerComment) {
+        this.reviewerComment = reviewerComment;
+    }
+
     public String getRequestedBy() {
         return requestedBy;
     }
@@ -59,26 +74,14 @@ public class HumanApproval extends AuditableEntity {
     }
 
     public String getReviewedBy() {
-        return reviewedBy;
+        return reviewerEmail;
     }
 
     public void setReviewedBy(String reviewedBy) {
-        this.reviewedBy = reviewedBy;
+        this.reviewerEmail = reviewedBy;
     }
 
     public Instant getReviewedAt() {
-        return reviewedAt;
-    }
-
-    public void setReviewedAt(Instant reviewedAt) {
-        this.reviewedAt = reviewedAt;
-    }
-
-    public String getNotes() {
-        return notes;
-    }
-
-    public void setNotes(String notes) {
-        this.notes = notes;
+        return getUpdatedAt();
     }
 }
