@@ -11,7 +11,7 @@ extraction_service = ExtractionService()
     "/extract",
     response_model=ExtractResponse,
     summary="Extract structured fields",
-    description="Returns mock structured field extraction for workflow input. OpenAI integration is not enabled yet.",
+    description="Returns structured field extraction for workflow input. Supports OpenAI integration.",
 )
 def extract(request: ExtractRequest) -> ExtractResponse:
     return extraction_service.extract(request)

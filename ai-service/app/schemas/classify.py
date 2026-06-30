@@ -18,12 +18,14 @@ class ClassifyRequest(BaseModel):
 class ClassifyResponse(BaseModel):
     model_config = ConfigDict(json_schema_extra={
         "example": {
-            "detected_intent": "deployment_request",
+            "intent": "deployment_request",
             "confidence": 0.92,
+            "reasoningSummary": "Input contains production deployment keywords.",
             "model_name": "mock-classifier",
         }
     })
 
-    detected_intent: str
+    intent: str
     confidence: float = Field(..., ge=0, le=1)
+    reasoningSummary: str | None = None
     model_name: str

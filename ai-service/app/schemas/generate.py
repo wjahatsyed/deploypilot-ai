@@ -18,10 +18,16 @@ class GenerateRequest(BaseModel):
 class GenerateResponse(BaseModel):
     model_config = ConfigDict(json_schema_extra={
         "example": {
-            "content": "Mock recommendation: request human approval before deployment.",
+            "recommendedAction": "Request human approval before deployment.",
+            "nextSteps": ["Verify logs", "Get approval"],
+            "riskLevel": "medium",
+            "requiresHumanApproval": True,
             "model_name": "mock-generator",
         }
     })
 
-    content: str
+    recommendedAction: str
+    nextSteps: list[str] = Field(default_factory=list)
+    riskLevel: str
+    requiresHumanApproval: bool
     model_name: str

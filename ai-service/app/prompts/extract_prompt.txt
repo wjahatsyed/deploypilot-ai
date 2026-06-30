@@ -1,0 +1,14 @@
+Extract structured information from the following text:
+
+Text:
+{{input_content}}
+
+Provide the response in JSON format with these fields:
+{
+  "city": "string or null",
+  "country": "string or null",
+  "issueType": "string",
+  "requestedAction": "string or null",
+  "customerImpact": "string",
+  "prioritySignals": ["string"]
+}

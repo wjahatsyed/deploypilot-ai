@@ -1,0 +1,17 @@
+Classify the following workflow input into one of these categories:
+- sla_breach
+- refund_request
+- compliance_review
+- customer_complaint
+- operational_escalation
+- unknown
+
+Input content:
+{{input_content}}
+
+Provide the response in JSON format:
+{
+  "intent": "category_name",
+  "confidence": 0.0-1.0,
+  "reasoningSummary": "Brief explanation of why this category was chosen"
+}

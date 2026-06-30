@@ -18,14 +18,20 @@ class ExtractRequest(BaseModel):
 class ExtractResponse(BaseModel):
     model_config = ConfigDict(json_schema_extra={
         "example": {
-            "fields": {
-                "environment": "production",
-                "release_version": "1.2.3",
-                "approver": "Alex",
-            },
+            "city": "London",
+            "country": "UK",
+            "issueType": "Technical",
+            "requestedAction": "Deployment",
+            "customerImpact": "None",
+            "prioritySignals": ["Urgent"],
             "model_name": "mock-extractor",
         }
     })
 
-    fields: dict[str, Any]
+    city: str | None = None
+    country: str | None = None
+    issueType: str | None = None
+    requestedAction: str | None = None
+    customerImpact: str | None = None
+    prioritySignals: list[str] = Field(default_factory=list)
     model_name: str
