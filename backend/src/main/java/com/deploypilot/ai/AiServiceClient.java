@@ -10,6 +10,9 @@ import org.springframework.web.client.RestClient;
 
 import java.util.Map;
 
+/**
+ * HTTP client for communicating with the Python FastAPI AI service.
+ */
 @Service
 public class AiServiceClient {
     private static final Logger log = LoggerFactory.getLogger(AiServiceClient.class);

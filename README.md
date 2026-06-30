@@ -3,7 +3,7 @@
 ## Prerequisites
 - JDK 21
 - Docker and Docker Compose
-- Maven, or IntelliJ IDEA's bundled Maven
+- Maven (optional, Maven wrapper included)
 
 ## Getting Started
 ### Database
@@ -15,12 +15,12 @@ docker compose -f infra/docker-compose.yml up -d postgres
 ### Build and Run
 1. Build the entire project from the root:
    ```bash
-   mvn clean install
+   .\mvnw.cmd clean install
    ```
 
 2. Run the backend application:
    ```bash
-   mvn spring-boot:run -pl backend
+   .\mvnw.cmd spring-boot:run -pl backend
    ```
 
 ## AI Service Integration
@@ -45,7 +45,7 @@ The backend integrates with the AI service to process workflow runs.
 2. **Start Backend**:
    ```bash
    cd backend
-   mvn spring-boot:run
+   ..\mvnw.cmd spring-boot:run
    ```
    The backend expects the AI service at `http://localhost:8000` (configurable via `ai.service.base-url`).
 

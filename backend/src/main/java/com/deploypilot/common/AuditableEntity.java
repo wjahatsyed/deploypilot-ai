@@ -7,8 +7,10 @@ import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import java.time.Instant;
 import java.util.UUID;
+import lombok.Getter;
 
 @MappedSuperclass
+@Getter
 public abstract class AuditableEntity {
 
     @Id
@@ -34,17 +36,5 @@ public abstract class AuditableEntity {
     @PreUpdate
     protected void onUpdate() {
         updatedAt = Instant.now();
-    }
-
-    public UUID getId() {
-        return id;
-    }
-
-    public Instant getCreatedAt() {
-        return createdAt;
-    }
-
-    public Instant getUpdatedAt() {
-        return updatedAt;
     }
 }
