@@ -1,5 +1,7 @@
 # DeployPilot AI
 
+[![CI](https://github.com/wjahatsyed/deploypilot-ai/actions/workflows/ci.yml/badge.svg)](https://github.com/wjahatsyed/deploypilot-ai/actions/workflows/ci.yml)
+
 ## Prerequisites
 - JDK 21
 - Docker and Docker Compose
