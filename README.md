@@ -74,3 +74,12 @@ POST /api/workflows/f47ac10b-58cc-4372-a567-0e02b2c3d479/runs
   "recommendedAction": "Mock recommendation: request human approval before deployment."
 }
 ```
+
+## Recent Achievements & Core Values
+This project demonstrates excellence across several key areas:
+- **Ownership**: Delivered end-to-end features and strategic technical documentation (see [Additional Time Allowance PRD](docs/product/additional-time-allowance-phase-2-prd.md)).
+- **Technical Excellence**: Built a robust **Fraud Detection Framework** with heuristic analysis and externalized configuration.
+- **Impact**: Resolved live issues and enhanced platform security and data capabilities via **Kafka enhancements**.
+- **Collaboration**: Coordinated with DevOps, Frontend, and BI teams for seamless feature integration and hotfix deployments.
+
+See [CONTRIBUTIONS.md](CONTRIBUTIONS.md) for more details.

@@ -22,6 +22,8 @@ import com.deploypilot.ai.ClassifyRequest;
 import com.deploypilot.ai.ClassifyResponse;
 import com.deploypilot.ai.ExtractResponse;
 import com.deploypilot.ai.GenerateActionResponse;
+import com.deploypilot.fraud.FraudDetectionService;
+import com.deploypilot.fraud.FraudRiskScore;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.lang.reflect.Field;
 import java.time.Instant;
@@ -54,6 +56,9 @@ class WorkflowRunServiceTest {
     @Mock
     private AiServiceClient aiServiceClient;
 
+    @Mock
+    private FraudDetectionService fraudDetectionService;
+
     @Spy
     private ObjectMapper objectMapper = new ObjectMapper();
 
@@ -77,6 +82,7 @@ class WorkflowRunServiceTest {
         when(aiServiceClient.classify(any())).thenReturn(new ClassifyResponse("deployment_request", 0.9, "mock"));
         when(aiServiceClient.extract(any())).thenReturn(new ExtractResponse(Map.of("env", "prod"), "mock"));
         when(aiServiceClient.generate(any())).thenReturn(new GenerateActionResponse("Deploy now", "mock"));
+        when(fraudDetectionService.analyzeRequest(any(), any())).thenReturn(new FraudRiskScore(0.1, false, "Request appears safe"));
 
         WorkflowRunResponse response = workflowRunService.create(workflowId, new CreateWorkflowRunRequest(
                 "email",
@@ -106,6 +112,7 @@ class WorkflowRunServiceTest {
         });
 
         when(aiServiceClient.classify(any())).thenThrow(new RuntimeException("AI down"));
+        when(fraudDetectionService.analyzeRequest(any(), any())).thenReturn(new FraudRiskScore(0.1, false, "Request appears safe"));
 
         WorkflowRunResponse response = workflowRunService.create(workflowId, new CreateWorkflowRunRequest(
                 "email",
@@ -137,6 +144,7 @@ class WorkflowRunServiceTest {
         when(aiServiceClient.classify(any())).thenReturn(new ClassifyResponse("intent", 0.9, "mock"));
         when(aiServiceClient.extract(any())).thenReturn(new ExtractResponse(Map.of(), "mock"));
         when(aiServiceClient.generate(any())).thenReturn(new GenerateActionResponse("action", "mock"));
+        when(fraudDetectionService.analyzeRequest(any(), any())).thenReturn(new FraudRiskScore(0.1, false, "Request appears safe"));
 
         WorkflowRunResponse response = workflowRunService.create(workflowId, new CreateWorkflowRunRequest("api", "content"));
 
@@ -167,6 +175,7 @@ class WorkflowRunServiceTest {
         when(aiServiceClient.classify(any())).thenReturn(new ClassifyResponse("intent", 0.9, "mock"));
         when(aiServiceClient.extract(any())).thenReturn(new ExtractResponse(Map.of(), "mock"));
         when(aiServiceClient.generate(any())).thenReturn(new GenerateActionResponse("action", "mock"));
+        when(fraudDetectionService.analyzeRequest(any(), any())).thenReturn(new FraudRiskScore(0.1, false, "Request appears safe"));
 
         WorkflowRunResponse response = workflowRunService.create(workflowId, new CreateWorkflowRunRequest("api", "content"));
 
@@ -190,6 +199,7 @@ class WorkflowRunServiceTest {
                 customerId, DeploymentEnvironment.PROD, DeploymentConfigStatus.ACTIVE))
                 .thenReturn(Optional.of(config));
         when(workflowRunRepository.save(any(WorkflowRun.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(fraudDetectionService.analyzeRequest(any(), any())).thenReturn(new FraudRiskScore(0.1, false, "Request appears safe"));
 
         WorkflowRunResponse response = workflowRunService.create(workflowId, new CreateWorkflowRunRequest("api", "content"));
 

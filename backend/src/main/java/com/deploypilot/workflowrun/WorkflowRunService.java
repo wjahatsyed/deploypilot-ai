@@ -15,6 +15,8 @@ import com.deploypilot.deployment.DeploymentConfig;
 import com.deploypilot.deployment.DeploymentConfigRepository;
 import com.deploypilot.deployment.DeploymentConfigStatus;
 import com.deploypilot.deployment.DeploymentEnvironment;
+import com.deploypilot.fraud.FraudDetectionService;
+import com.deploypilot.fraud.FraudRiskScore;
 import com.deploypilot.workflow.Workflow;
 import com.deploypilot.workflow.WorkflowService;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -42,6 +44,7 @@ public class WorkflowRunService {
     private final DeploymentConfigRepository deploymentConfigRepository;
     private final HumanApprovalRepository humanApprovalRepository;
     private final AiServiceClient aiServiceClient;
+    private final FraudDetectionService fraudDetectionService;
     private final ObjectMapper objectMapper;
 
     public WorkflowRunService(
@@ -50,6 +53,7 @@ public class WorkflowRunService {
             DeploymentConfigRepository deploymentConfigRepository,
             HumanApprovalRepository humanApprovalRepository,
             AiServiceClient aiServiceClient,
+            FraudDetectionService fraudDetectionService,
             ObjectMapper objectMapper
     ) {
         this.workflowRunRepository = workflowRunRepository;
@@ -57,6 +61,7 @@ public class WorkflowRunService {
         this.deploymentConfigRepository = deploymentConfigRepository;
         this.humanApprovalRepository = humanApprovalRepository;
         this.aiServiceClient = aiServiceClient;
+        this.fraudDetectionService = fraudDetectionService;
         this.objectMapper = objectMapper;
     }
 
@@ -82,6 +87,23 @@ public class WorkflowRunService {
         workflowRun.setInputSource(request.inputSource());
         workflowRun.setInputContent(request.inputContent());
         workflowRun.setStatus(RunStatus.PROCESSING);
+
+        // Fraud Detection Check
+        FraudRiskScore riskScore = fraudDetectionService.analyzeRequest(request.inputSource(), request.inputContent());
+        if (riskScore.isFlagged()) {
+            log.warn("Fraud detected for workflow run! Reason: {}", riskScore.getReason());
+            workflowRun.setStatus(RunStatus.WAITING_FOR_APPROVAL);
+            workflowRun.setRecommendedAction("BLOCKED: " + riskScore.getReason());
+            workflowRun = workflowRunRepository.save(workflowRun);
+            
+            HumanApproval approval = new HumanApproval();
+            approval.setWorkflowRun(workflowRun);
+            approval.setStatus(ApprovalStatus.PENDING);
+            approval.setRequestedBy("fraud-detection-service");
+            humanApprovalRepository.save(approval);
+            
+            return toResponse(workflowRun);
+        }
 
         workflowRun = workflowRunRepository.save(workflowRun);
 
