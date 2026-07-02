@@ -10,6 +10,9 @@ import org.springframework.stereotype.Repository;
 public interface DeploymentConfigRepository extends JpaRepository<DeploymentConfig, UUID> {
     List<DeploymentConfig> findByCustomerId(UUID customerId);
 
+    Optional<DeploymentConfig> findByCustomerIdAndEnvironment(
+            UUID customerId, DeploymentEnvironment environment);
+
     Optional<DeploymentConfig> findByCustomerIdAndEnvironmentAndStatus(
             UUID customerId, DeploymentEnvironment environment, DeploymentConfigStatus status);
 }

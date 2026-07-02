@@ -1,0 +1,8 @@
+deploypilot:
+  demo:
+    seed-data: true
+
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: ${JPA_DDL_AUTO:update}
