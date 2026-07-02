@@ -15,6 +15,21 @@ docker compose up --build
 ```
 See [Local Setup Guide](docs/runbooks/local-setup.md) for health URLs and sample API commands.
 
+### End-to-End Smoke Test
+After the Docker Compose stack is running, verify the core platform flow with:
+
+```bash
+./scripts/e2e-smoke-test.sh
+```
+
+On Windows PowerShell:
+
+```powershell
+.\scripts\e2e-smoke-test.ps1
+```
+
+See [Smoke Test Runbook](docs/runbooks/smoke-test.md) for details and configurable URLs.
+
 ### Manual Setup
 #### Database & Infrastructure
 Start PostgreSQL and Redis from the repository root:
