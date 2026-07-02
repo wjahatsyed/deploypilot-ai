@@ -1,6 +1,11 @@
-# DeployPilot AI
+﻿# DeployPilot AI
 
 [![CI](https://github.com/wjahatsyed/deploypilot-ai/actions/workflows/ci.yml/badge.svg)](https://github.com/wjahatsyed/deploypilot-ai/actions/workflows/ci.yml)
+
+## Release and Interview Docs
+- [v1.0 Release Notes](docs/release/v1.0.md)
+- [OpenAI Application Summary](docs/runbooks/openai-application-summary.md)
+- [Interview Walkthrough](docs/runbooks/interview-walkthrough.md)
 
 ## Prerequisites
 - JDK 21
@@ -98,3 +103,4 @@ This project demonstrates excellence across several key areas:
 - **Collaboration**: Coordinated with DevOps, Frontend, and BI teams for seamless feature integration and hotfix deployments.
 
 See [CONTRIBUTIONS.md](CONTRIBUTIONS.md) for more details.
+
