@@ -5,3 +5,13 @@ target/
 .idea/shelf/
 
 *.log
+
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+.env
+
+node_modules/
+.next/
+*.tsbuildinfo

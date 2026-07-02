@@ -10,10 +10,15 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
-import java.time.Instant;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @Table(name = "workflow_runs")
+@Getter
+@Setter
+@NoArgsConstructor
 public class WorkflowRun extends AuditableEntity {
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
@@ -24,39 +29,16 @@ public class WorkflowRun extends AuditableEntity {
     @Column(nullable = false)
     private RunStatus status = RunStatus.QUEUED;
 
-    private Instant startedAt;
+    private String inputSource;
 
-    private Instant completedAt;
+    @Column(nullable = false, columnDefinition = "text")
+    private String inputContent;
 
-    public Workflow getWorkflow() {
-        return workflow;
-    }
+    private String detectedIntent;
 
-    public void setWorkflow(Workflow workflow) {
-        this.workflow = workflow;
-    }
+    @Column(columnDefinition = "text")
+    private String extractedFieldsJson;
 
-    public RunStatus getStatus() {
-        return status;
-    }
-
-    public void setStatus(RunStatus status) {
-        this.status = status;
-    }
-
-    public Instant getStartedAt() {
-        return startedAt;
-    }
-
-    public void setStartedAt(Instant startedAt) {
-        this.startedAt = startedAt;
-    }
-
-    public Instant getCompletedAt() {
-        return completedAt;
-    }
-
-    public void setCompletedAt(Instant completedAt) {
-        this.completedAt = completedAt;
-    }
+    @Column(columnDefinition = "text")
+    private String recommendedAction;
 }

@@ -1,7 +1,7 @@
 package com.deploypilot.customer;
 
+import com.deploypilot.common.exception.ResourceNotFoundException;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,16 +16,43 @@ public class CustomerService {
         this.customerRepository = customerRepository;
     }
 
-    public List<Customer> findAll() {
-        return customerRepository.findAll();
+    public List<CustomerResponse> findAll() {
+        return customerRepository.findAll().stream()
+                .map(CustomerService::toResponse)
+                .toList();
     }
 
-    public Optional<Customer> findById(UUID id) {
-        return customerRepository.findById(id);
+    public CustomerResponse findById(UUID id) {
+        return customerRepository.findById(id)
+                .map(CustomerService::toResponse)
+                .orElseThrow(() -> new ResourceNotFoundException("Customer not found: " + id));
     }
 
     @Transactional
-    public Customer create(Customer customer) {
-        return customerRepository.save(customer);
+    public CustomerResponse create(CreateCustomerRequest request) {
+        Customer customer = new Customer();
+        customer.setName(request.name());
+        customer.setIndustry(request.industry());
+        customer.setRegion(request.region());
+        customer.setContactEmail(request.contactEmail());
+
+        return toResponse(customerRepository.save(customer));
+    }
+
+    public Customer getEntityById(UUID id) {
+        return customerRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Customer not found: " + id));
+    }
+
+    static CustomerResponse toResponse(Customer customer) {
+        return new CustomerResponse(
+                customer.getId(),
+                customer.getName(),
+                customer.getIndustry(),
+                customer.getRegion(),
+                customer.getContactEmail(),
+                customer.getCreatedAt(),
+                customer.getUpdatedAt()
+        );
     }
 }

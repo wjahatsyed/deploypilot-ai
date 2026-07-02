@@ -23,20 +23,18 @@ public class WorkflowController {
     }
 
     @GetMapping
-    public List<Workflow> findAll() {
+    public List<WorkflowResponse> findAll() {
         return workflowService.findAll();
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Workflow> findById(@PathVariable UUID id) {
-        return workflowService.findById(id)
-                .map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.notFound().build());
+    public WorkflowResponse findById(@PathVariable UUID id) {
+        return workflowService.findById(id);
     }
 
     @PostMapping
-    public ResponseEntity<Workflow> create(@Valid @RequestBody Workflow workflow) {
-        Workflow created = workflowService.create(workflow);
-        return ResponseEntity.created(URI.create("/api/workflows/" + created.getId())).body(created);
+    public ResponseEntity<WorkflowResponse> create(@Valid @RequestBody CreateWorkflowRequest request) {
+        WorkflowResponse created = workflowService.create(request);
+        return ResponseEntity.created(URI.create("/api/workflows/" + created.id())).body(created);
     }
 }
